@@ -70,9 +70,15 @@ The system is designed with **clean architecture**, **strong test coverage**, an
 - Spring Boot Test
 - MockMvc
 
-### Build
-- Maven
-
+### Run and building the application
+#### Build the Docker image
+```bash
+docker build -t pismo-api .
+```
+#### Run the Docker image
+```bash
+docker run -p 8080:8080 pismo-api
+```
 ---
 
 ## 4. How to clone the repository using a Personal Access Token (PAT)
