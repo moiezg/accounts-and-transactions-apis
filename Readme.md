@@ -87,4 +87,4 @@ Create a token from your Git provider (GitHub / GitLab / Bitbucket) with **repos
 
 ```bash
 curl -u YOUR_USERNAME:YOUR_PERSONAL_ACCESS_TOKEN \
-  https://github.com/YOUR_ORG/YOUR_REPO_NAME.git
+  https://github.com/moiezg/account-and-transaction-apis
