@@ -1,158 +1,270 @@
-# Pismo Account & Transaction API
+# 🧾 Account & Transaction API
 
-## 1. What this application is about
+A RESTful backend service built using **Spring Boot** that manages accounts and financial transactions with strong guarantees around **consistency**, **validation**, and **concurrency**.
 
-This application is a **RESTful backend service** that manages:
-
-* **Accounts**, identified by a document number
-* **Financial transactions** associated with accounts
-* **Business rules** around transaction types (debit vs credit)
-* **Data consistency** using database transactions and constraints
-
-The system is designed with **clean architecture**, **strong test coverage**, and a proper **testing pyramid** (unit, integration, and end-to-end tests).
+This project is designed to reflect real-world financial system constraints and demonstrates clean architecture, transactional safety, disciplined testing, and **containerized execution using Docker**.
 
 ---
 
-## 2. Application components
+## 🚀 Features
 
-### APIs
-
-#### Account APIs
-
-| Method | Endpoint         | Description            |
-| ------ | ---------------- | ---------------------- |
-| POST   | `/accounts`      | Create a new account   |
-| GET    | `/accounts/{id}` | Fetch an account by ID |
-
-#### Transaction APIs
-
-| Method | Endpoint        | Description                         |
-| ------ | --------------- | ----------------------------------- |
-| POST   | `/transactions` | Create a transaction for an account |
+- Create and retrieve accounts
+- Create credit and debit transactions
+- Enforce non-negative account balances
+- Strong transactional guarantees (all-or-nothing updates)
+- Concurrency-safe balance updates
+- Clean separation between API, domain, and persistence layers
+- Comprehensive test coverage (unit, integration, E2E)
+- Dockerized build and runtime
 
 ---
 
-### Database
+## 📡 API Endpoints
 
-* **Relational database using JPA/Hibernate**
-* Core tables:
-
-  * `accounts`
-  * `transactions`
-* Constraints:
-
-  * Unique `document_number` on accounts
-  * Foreign key from transactions → accounts
+| Method | Endpoint | Description |
+|------|---------|-------------|
+| POST | `/accounts` | Create a new account |
+| GET | `/accounts/{id}` | Retrieve account details |
+| POST | `/transactions` | Create a transaction for an account |
 
 ---
 
-### Core layers
+## 📚 Business Rules
 
-* **Controller layer**: HTTP handling and validation
-* **Service layer**: business logic and transactions
-* **Repository layer**: persistence (Spring Data JPA)
-* **DTOs**: immutable request/response objects (API contracts)
-* **Entities**: JPA-managed persistence models
-
----
-
-## 3. API Documentation (Swagger / OpenAPI)
-
-This application exposes **interactive API documentation** using **OpenAPI 3 (Swagger UI)** via **springdoc-openapi**.
-
-### Swagger UI
-
-Once the application is running, you can access the Swagger UI at:
-
-```
-http://localhost:8080/swagger-ui.html
-```
-
-The Swagger UI provides:
-
-* All available endpoints
-* Request and response schemas
-* Field-level documentation and examples
-* Enum values and constraints
-
-### OpenAPI specification
-
-The raw OpenAPI specification is available at:
-
-```
-http://localhost:8080/v3/api-docs
-```
-
-This can be used to:
-
-* Generate client SDKs
-* Import into Postman / Insomnia
-* Export OpenAPI JSON or YAML
-
-### Documentation approach
-
-* Swagger annotations are applied **only to API-facing DTOs**
-* Database entities are **not** coupled to Swagger
-* Request DTOs define validation rules and constraints
-* Response DTOs define the public API contract
-
-This ensures a clean separation between **persistence models** and **API documentation**.
+- Transactions are either **credit** or **debit**, determined by `OperationType`
+- Debit transactions must **not** result in a negative balance
+- All balance updates and transaction inserts occur inside a **single database transaction**
+- If any part of the operation fails, **all changes are rolled back**
+- Invalid input or rule violations return **HTTP 400**
 
 ---
 
-## 4. Dependencies
+## 🛠 Tech Stack
 
-### Runtime
-
-* Java 17+ (tested up to Java 23)
-* Spring Boot
-* Spring Web
-* Spring Data JPA
-* Hibernate
-* H2 (local)
-* Jackson (JSON serialization)
-* Springdoc OpenAPI (Swagger UI)
-
-### Testing
-
-* JUnit 5
-* AssertJ
-* Spring Boot Test
-* MockMvc
+- Java 17
+- Spring Boot 3.x
+- Spring Web
+- Spring Data JPA (Hibernate)
+- Jackson (JSON serialization/deserialization)
+- H2 (default in-memory database)
+- Springdoc OpenAPI (Swagger)
+- JUnit 5, Mockito, AssertJ
+- Docker
 
 ---
 
-## 5. Run and build the application
+## 📦 Getting Started (Local)
 
-### Build the Docker image
+### Prerequisites
+
+- Java 17+
+- Maven
+
+---
+
+### Clone & Build
 
 ```bash
-docker build -t pismo-api .
-```
-
-### Run the Docker image
-
-```bash
-docker run -p 8080:8080 pismo-api
-```
-
-After startup, Swagger UI will be available at:
-
-```
-http://localhost:8080/swagger-ui.html
+git clone https://github.com/moiezg/account-and-transaction-apis.git
+cd account-and-transaction-apis
+mvn clean install
 ```
 
 ---
 
-## 6. How to clone the repository using a Personal Access Token (PAT)
-
-### Step 1: Generate a Personal Access Token
-
-Create a token from your Git provider (GitHub / GitLab / Bitbucket) with **repository read access**.
-
-### Step 2: Clone using curl
+### Run Locally (Without Docker)
 
 ```bash
-curl -u YOUR_USERNAME:YOUR_PERSONAL_ACCESS_TOKEN \
-  https://github.com/moiezg/account-and-transaction-apis
+mvn spring-boot:run
 ```
+
+Application runs at:
+
+```
+http://localhost:8080
+```
+
+---
+
+## 🐳 Running with Docker (Recommended)
+
+### Prerequisites
+
+- Docker (20+)
+- Docker Compose (optional)
+
+---
+
+### Build Docker Image
+
+From the project root:
+
+```bash
+docker build -t account-transaction-api .
+```
+
+---
+
+### Run Docker Container
+
+```bash
+docker run -p 8080:8080 account-transaction-api
+```
+
+Application will be available at:
+
+```
+http://localhost:8080
+```
+
+---
+
+### Stop Container
+
+```bash
+docker ps
+docker stop <container_id>
+```
+
+---
+
+## 📘 API Documentation (Swagger)
+
+Once the application is running (locally or in Docker):
+
+- Swagger UI  
+  http://localhost:8080/swagger-ui.html
+
+- OpenAPI Spec  
+  http://localhost:8080/v3/api-docs
+
+---
+
+## 🧠 JSON Contract
+
+### Create Transaction Request
+
+```json
+{
+  "accountId": 1,
+  "operationType": 3,
+  "amount": 100.00
+}
+```
+
+Notes:
+- JSON uses **camelCase**
+- `operationType` is a numeric value mapped to an enum via `@JsonCreator`
+- Validation failures return **HTTP 400**
+
+---
+
+## 🏛 Architecture Overview
+
+### Controller Layer
+- Handles HTTP requests
+- Performs request validation
+- Maps domain responses to API DTOs
+
+### Service Layer
+- Contains business logic
+- Defines transactional boundaries
+- Coordinates persistence and validation
+
+### Repository Layer
+- Uses Spring Data JPA
+- Encapsulates database access
+
+### DTOs
+- Implemented using Java **records**
+- Immutable
+- Used strictly at API boundaries
+
+### Entities
+- Mutable JPA-managed objects
+- Never exposed directly to API consumers
+
+---
+
+## 🔄 Transaction Safety & Concurrency
+
+- Account balance updates use **pessimistic locking** (`PESSIMISTIC_WRITE`)
+- Concurrent updates to the same account are serialized at the database level
+- Prevents lost updates and double-spending scenarios
+- Lock timeout is configured to avoid indefinite blocking
+
+---
+
+## 🧪 Testing Strategy
+
+### Unit Tests
+- Test service orchestration and business logic
+- Use Mockito
+- No Spring context or database
+
+### Integration Tests
+- Validate JPA behavior
+- Verify transactions, rollbacks, and locking
+- Use real database interactions
+
+### End-to-End (E2E) Tests
+- Exercise the full stack using MockMvc
+- Validate HTTP contracts, validation, and persistence
+
+Run all tests:
+
+```bash
+mvn clean verify
+```
+
+---
+
+## 📌 Assumptions Made
+
+1. Single currency  
+   All monetary values are assumed to be in the same currency.
+
+2. Eager balance updates  
+   Account balance is updated immediately per transaction.
+
+3. Single balance per account  
+   Accounts maintain one balance field.
+
+4. No authentication or authorization  
+   Security is intentionally out of scope.
+
+5. No idempotency handling  
+   Duplicate transaction submissions are not deduplicated.
+
+6. Static operation types  
+   `OperationType` values are predefined and not configurable.
+
+---
+
+## ⚖️ Trade-offs & Design Decisions
+
+### Pessimistic Locking
+- Guarantees correctness under concurrency
+- Trades throughput for strong consistency
+
+### Balance Field vs Ledger-Only Model
+- Faster reads, simpler design
+- Less flexible than full event sourcing
+
+---
+
+## 📄 License
+
+This project is currently unlicensed.
+
+---
+
+## 📌 Final Notes
+
+This API prioritizes **correctness, clarity, and transactional integrity**.
+
+It is intentionally designed to demonstrate:
+- Safe money handling
+- Concurrency correctness
+- Clean layering
+- Production-grade testing
