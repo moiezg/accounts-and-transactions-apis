@@ -1,13 +1,12 @@
 package com.moiez.pismo.service;
 
 import com.moiez.pismo.api.dto.request.CreateTransactionRequest;
-import com.moiez.pismo.api.dto.response.AccountResponse;
 import com.moiez.pismo.api.dto.response.TransactionResponse;
 import com.moiez.pismo.model.Account;
-import com.moiez.pismo.model.OperationType;
 import com.moiez.pismo.model.Transaction;
 import com.moiez.pismo.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -24,19 +23,17 @@ public class TransactionService {
         this.accountService = accountService;
     }
 
+    @Transactional
     public TransactionResponse createTransaction(CreateTransactionRequest request) {
+        BigDecimal finalAmount = request.operationType().isDebit()
+                ? request.amount().negate()
+                : request.amount();
 
-        AccountResponse account = accountService.getAccount(request.accountId());
-        OperationType operationType = OperationType.fromId(request.operationTypeId());
-
-        BigDecimal finalAmount = getFinalAmount(request.amount(), operationType);
+        accountService.applyTransaction(request.accountId(), finalAmount);
 
         Transaction transaction = Transaction.builder()
-                .account(Account.builder()
-                        .id(account.id())
-                        .documentNumber(account.documentNumber())
-                        .build())
-                .operationType(operationType)
+                .account(Account.builder().id(request.accountId()).build())
+                .operationType(request.operationType())
                 .amount(finalAmount)
                 .createdAt(Instant.now())
                 .build();
@@ -44,12 +41,6 @@ public class TransactionService {
         transaction = transactionRepository.save(transaction);
 
         return mapToTransactionResponse(transaction);
-    }
-
-    private BigDecimal getFinalAmount(BigDecimal amount, OperationType operationType) {
-        return operationType.isDebit()
-                ? amount.negate()
-                : amount;
     }
 
     private TransactionResponse mapToTransactionResponse(Transaction transaction) {

@@ -3,6 +3,7 @@ package com.moiez.pismo.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moiez.pismo.api.dto.request.CreateAccountRequest;
 import com.moiez.pismo.api.dto.request.CreateTransactionRequest;
+import com.moiez.pismo.model.OperationType;
 import com.moiez.pismo.repository.AccountRepository;
 import com.moiez.pismo.repository.TransactionRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -74,7 +75,7 @@ class PismoE2ETest {
         CreateTransactionRequest createTransaction =
                 new CreateTransactionRequest(
                         accountId,
-                        1, // PURCHASE
+                        OperationType.PAYMENT, // CREDIT
                         new BigDecimal("100.00")
                 );
 
@@ -82,7 +83,7 @@ class PismoE2ETest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTransaction)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.amount").value(-100.00));
+                .andExpect(jsonPath("$.amount").value(100.00));
 
         // Get Account
         mockMvc.perform(get("/accounts/{id}", accountId))
@@ -121,13 +122,13 @@ class PismoE2ETest {
                         .get("id")
                         .asLong();
 
-        // when — invalid operationTypeId
+        // when — invalid operationType
         mockMvc.perform(post("/transactions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "account_id": %d,
-                                  "operation_type_id": 999,
+                                  "accountId": %d,
+                                  "operationType": 999,
                                   "amount": 50.00
                                 }
                                 """.formatted(accountId)))
@@ -136,4 +137,53 @@ class PismoE2ETest {
         // then — no transaction inserted
         assertThat(transactionRepository.count()).isZero();
     }
+
+    @Test
+    void e2e_multiple_transactions_update_balance_correctly() throws Exception {
+        String accountJson =
+                mockMvc.perform(post("/accounts")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                      "documentNumber": "77788899900"
+                                    }
+                                    """))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString();
+
+        Long accountId =
+                objectMapper.readTree(accountJson)
+                        .get("id")
+                        .asLong();
+
+        // credit
+        mockMvc.perform(post("/transactions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "accountId": %d,
+                              "operationType": 4,
+                              "amount": 200.00
+                            }
+                            """.formatted(accountId)))
+                .andExpect(status().isOk());
+
+        // debit
+        mockMvc.perform(post("/transactions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "accountId": %d,
+                              "operationType": 3,
+                              "amount": 50.00
+                            }
+                            """.formatted(accountId)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/accounts/{id}", accountId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.balance").value(150.00));
+    }
+
 }

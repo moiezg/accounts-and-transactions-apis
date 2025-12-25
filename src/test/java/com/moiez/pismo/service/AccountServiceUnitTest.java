@@ -12,10 +12,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -115,5 +117,63 @@ class AccountServiceUnitTest {
 
         verify(repository).findById(ACCOUNT_ID);
         verifyNoMoreInteractions(repository);
+    }
+
+    @Test
+    void credit_increases_balance() {
+        Account account = new Account();
+        account.setBalance(BigDecimal.valueOf(100));
+
+        when(repository.findByIdForUpdate(1L))
+                .thenReturn(Optional.of(account));
+
+        service.applyTransaction(1L, BigDecimal.valueOf(50));
+
+        assertEquals(0,
+                account.getBalance().compareTo(BigDecimal.valueOf(150))
+        );
+    }
+
+    @Test
+    void debit_decreases_balance() {
+        Account account = new Account();
+        account.setBalance(BigDecimal.valueOf(100));
+
+        when(repository.findByIdForUpdate(1L))
+                .thenReturn(Optional.of(account));
+
+        service.applyTransaction(1L, BigDecimal.valueOf(-30));
+
+        assertEquals(0,
+                account.getBalance().compareTo(BigDecimal.valueOf(70))
+        );
+    }
+
+    @Test
+    void debit_causing_negative_balance_throws() {
+        Account account = new Account();
+        account.setBalance(BigDecimal.valueOf(50));
+
+        when(repository.findByIdForUpdate(1L))
+                .thenReturn(Optional.of(account));
+
+        assertThrows(BadRequestException.class, () ->
+                service.applyTransaction(1L, BigDecimal.valueOf(-100))
+        );
+
+        // balance unchanged
+        assertEquals(0,
+                account.getBalance().compareTo(BigDecimal.valueOf(50))
+        );
+    }
+
+    @Test
+    void invalid_account_throws() {
+        when(repository.findByIdForUpdate(1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(BadRequestException.class, () ->
+                service.applyTransaction(1L, BigDecimal.TEN)
+        );
     }
 }

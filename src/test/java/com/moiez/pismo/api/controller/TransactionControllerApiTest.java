@@ -39,7 +39,7 @@ class TransactionControllerApiTest {
     void shouldCreateTransaction_return200() throws Exception {
         CreateTransactionRequest request = new CreateTransactionRequest(
                 1L,
-                1,
+                OperationType.PAYMENT,
                 new BigDecimal("100.00")
         );
 
@@ -49,7 +49,7 @@ class TransactionControllerApiTest {
                         .id(1L)
                         .documentNumber("123")
                         .build())
-                .operationType(OperationType.fromId(2))
+                .operationType(OperationType.fromId(4))
                 .amount(new BigDecimal("100.00"))
                 .build();
 
@@ -68,7 +68,7 @@ class TransactionControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.transactionId").value(10L))
                 .andExpect(jsonPath("$.accountId").value(1L))
-                .andExpect(jsonPath("$.operationType").value(OperationType.fromId(2).name()))
+                .andExpect(jsonPath("$.operationType").value(OperationType.PAYMENT.getId()))
                 .andExpect(jsonPath("$.amount").value(100.00));
     }
 
@@ -78,7 +78,7 @@ class TransactionControllerApiTest {
     void shouldReturn404_whenRelatedEntityNotFound() throws Exception {
         CreateTransactionRequest request = new CreateTransactionRequest(
                 99L,
-                1,
+                OperationType.WITHDRAWAL,
                 new BigDecimal("100.00")
         );
 
@@ -97,7 +97,7 @@ class TransactionControllerApiTest {
     void shouldReturn400_whenOperationTypeIdIsInvalid() throws Exception {
         CreateTransactionRequest request = new CreateTransactionRequest(
                 1L,
-                999, // invalid operationTypeId
+                null, // invalid operationType
                 new BigDecimal("100.00")
         );
 

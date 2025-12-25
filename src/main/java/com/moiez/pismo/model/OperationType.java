@@ -1,5 +1,7 @@
 package com.moiez.pismo.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.moiez.pismo.exception.BadRequestException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -23,6 +25,16 @@ public enum OperationType {
         this.isDebit = isDebit;
     }
 
+    @JsonValue
+    public int getId() {
+        return id;
+    }
+
+    public boolean isDebit() {
+        return isDebit;
+    }
+
+    @JsonCreator
     public static OperationType fromId(Integer id) {
         return Arrays.stream(values())
                 .filter(op -> op.id == id)

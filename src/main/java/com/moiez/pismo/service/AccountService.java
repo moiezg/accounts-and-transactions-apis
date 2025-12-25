@@ -8,6 +8,8 @@ import com.moiez.pismo.model.Account;
 import com.moiez.pismo.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 @Service
 public class AccountService {
 
@@ -37,10 +39,23 @@ public class AccountService {
                 .orElseThrow(() -> new NotFoundException("Account not found"));
     }
 
+    public void applyTransaction(Long accountId, BigDecimal amount) {
+        Account account = repository.findByIdForUpdate(accountId)
+                .orElseThrow(() -> new BadRequestException("Invalid account"));
+
+        BigDecimal updatedBalance = amount.add(account.getBalance());
+        if (updatedBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Insufficient funds");
+        }
+
+        account.setBalance(updatedBalance);
+    }
+
     private AccountResponse mapToAccountResponse(Account account) {
         return AccountResponse.builder()
                 .id(account.getId())
                 .documentNumber(account.getDocumentNumber())
+                .balance(account.getBalance())
                 .build();
     }
 }

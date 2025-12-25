@@ -1,5 +1,6 @@
 package com.moiez.pismo.api.dto.request;
 
+import com.moiez.pismo.model.OperationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
@@ -20,12 +21,12 @@ public record CreateTransactionRequest (
     Long accountId,
 
     @Schema(
-            description = "Type of transaction",
+            description = "Type of transaction operation",
             example = "1",
             allowableValues = {"1", "2", "3", "4"}
     )
-    @NotNull(message = "operationTypeId is required")
-    Integer operationTypeId,
+    @NotNull(message = "operation type is required")
+    OperationType operationType,
 
     @Schema(
             description = "Transaction amount",
