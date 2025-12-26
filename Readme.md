@@ -23,9 +23,9 @@ This project is designed to reflect real-world financial system constraints and 
 
 | Method | Endpoint | Description |
 |------|---------|-------------|
-| POST | `/accounts` | Create a new account |
-| GET | `/accounts/{id}` | Retrieve account details |
-| POST | `/transactions` | Create a transaction for an account |
+| POST | `/v1/accounts` | Create a new account |
+| GET | `/v1/accounts/{id}` | Retrieve account details |
+| POST | `/v1/transactions` | Create a transaction for an account |
 
 ---
 
@@ -192,6 +192,15 @@ Notes:
 - Concurrent updates to the same account are serialized at the database level
 - Prevents lost updates and double-spending scenarios
 - Lock timeout is configured to avoid indefinite blocking
+
+---
+
+## 📝 Logging & Standards
+
+- **Versioning**: API endpoints are prefixed with `/v1` to support future non-breaking evolution.
+- **Observability**: Operations are logged using SLF4J with contextual information (Account ID, Transaction ID).
+- **Tracing**: Logs include the `Idempotency-Key` to correlate specific requests.
+- **Security**: PII is excluded from logs to ensure data privacy.
 
 ---
 

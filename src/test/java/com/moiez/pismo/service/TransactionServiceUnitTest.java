@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
 
+import static com.moiez.pismo.constant.ErrorConstants.INSUFFICIENT_FUNDS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -127,7 +128,7 @@ class TransactionServiceUnitTest {
         when(transactionRepository.findByIdempotencyKey(IDEMPOTENCY_KEY))
                 .thenReturn(Optional.empty());
 
-        doThrow(new BadRequestException("Insufficient funds"))
+        doThrow(new BadRequestException(INSUFFICIENT_FUNDS))
                 .when(accountService)
                 .applyTransaction(anyLong(), any());
 

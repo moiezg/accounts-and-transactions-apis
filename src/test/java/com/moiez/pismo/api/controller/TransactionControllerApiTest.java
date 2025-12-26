@@ -35,6 +35,8 @@ class TransactionControllerApiTest {
     @MockBean
     private TransactionService transactionService;
 
+    private static final String API_BASE_URL = "/v1/transactions";
+
     @Test
     void shouldCreateTransaction_return200() throws Exception {
         CreateTransactionRequest request = new CreateTransactionRequest(
@@ -62,7 +64,7 @@ class TransactionControllerApiTest {
                                 .eventTimestamp(transaction.getCreatedAt())
                                 .build());
 
-        mockMvc.perform(post("/transactions")
+        mockMvc.perform(post(API_BASE_URL)
                         .header("Idempotency-Key", "idem-123")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -83,7 +85,7 @@ class TransactionControllerApiTest {
             }
             """;
 
-        mockMvc.perform(post("/transactions")
+        mockMvc.perform(post(API_BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest());
@@ -102,7 +104,7 @@ class TransactionControllerApiTest {
         when(transactionService.createTransaction(any(), any()))
                 .thenReturn(mock(TransactionResponse.class));
 
-        mockMvc.perform(post("/transactions")
+        mockMvc.perform(post(API_BASE_URL)
                         .header("Idempotency-Key", "idem-123")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
@@ -123,7 +125,7 @@ class TransactionControllerApiTest {
         when(transactionService.createTransaction(any(CreateTransactionRequest.class), anyString()))
                 .thenThrow(new BadRequestException("Invalid accountId"));
 
-        mockMvc.perform(post("/transactions")
+        mockMvc.perform(post(API_BASE_URL)
                         .header("Idempotency-Key", "idem-123")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -141,7 +143,7 @@ class TransactionControllerApiTest {
         when(transactionService.createTransaction(any(CreateTransactionRequest.class), anyString()))
                 .thenThrow(new BadRequestException("Invalid operation type"));
 
-        mockMvc.perform(post("/transactions")
+        mockMvc.perform(post(API_BASE_URL)
                         .header("Idempotency-Key", "idem-123")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

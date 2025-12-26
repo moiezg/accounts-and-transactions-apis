@@ -19,6 +19,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.moiez.pismo.constant.ErrorConstants.ACCOUNT_ALREADY_EXISTS;
+import static com.moiez.pismo.constant.ErrorConstants.ACCOUNT_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -85,7 +87,7 @@ class AccountServiceIntegrationTest {
                 accountService.createAccount(
                         new CreateAccountRequest(DOCUMENT_NUMBER), "idem-1234"))
                 .isInstanceOf(ConflictingRequestException.class)
-                .hasMessage("Account already exists");
+                .hasMessage(ACCOUNT_ALREADY_EXISTS);
 
         // ensure no second insert
         assertThat(accountRepository.findAll())
@@ -146,6 +148,6 @@ class AccountServiceIntegrationTest {
         assertThatThrownBy(() ->
                 accountService.getAccount(9999L))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Account not found");
+                .hasMessage(ACCOUNT_NOT_FOUND);
     }
 }

@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import static com.moiez.pismo.constant.ErrorConstants.ACCOUNT_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -84,7 +85,7 @@ class AccountServiceUnitTest {
         // when / then
         assertThatThrownBy(() -> service.getAccount(ACCOUNT_ID))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Account not found");
+                .hasMessage(ACCOUNT_NOT_FOUND);
 
         verify(repository).findById(ACCOUNT_ID);
         verifyNoMoreInteractions(repository);
