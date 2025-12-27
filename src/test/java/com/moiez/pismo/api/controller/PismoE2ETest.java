@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -54,6 +55,7 @@ class PismoE2ETest {
 
         String accountResponseJson =
                 mockMvc.perform(post(ApiConstants.ACCOUNTS_BASE_URL)
+                                .with(httpBasic("admin", "password"))
                                 .header(ApiConstants.IDEMPOTENCY_KEY_HEADER, "idem-123")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createAccount)))
@@ -79,6 +81,7 @@ class PismoE2ETest {
                 );
 
         mockMvc.perform(post(ApiConstants.TRANSACTIONS_BASE_URL)
+                        .with(httpBasic("admin", "password"))
                         .header(ApiConstants.IDEMPOTENCY_KEY_HEADER, "idem-1234")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTransaction)))
@@ -86,7 +89,8 @@ class PismoE2ETest {
                 .andExpect(jsonPath("$.amount").value(100.00));
 
         // Get Account
-        mockMvc.perform(get(ApiConstants.ACCOUNTS_BASE_URL + "/{id}", accountId))
+        mockMvc.perform(get(ApiConstants.ACCOUNTS_BASE_URL + "/{id}", accountId)
+                        .with(httpBasic("admin", "password")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(accountId))
                 .andExpect(jsonPath("$.documentNumber")
@@ -106,6 +110,7 @@ class PismoE2ETest {
         // given — account exists
         String accountJson =
                 mockMvc.perform(post(ApiConstants.ACCOUNTS_BASE_URL)
+                                .with(httpBasic("admin", "password"))
                                 .header(ApiConstants.IDEMPOTENCY_KEY_HEADER, "idem-123")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
@@ -125,6 +130,7 @@ class PismoE2ETest {
 
         // when — invalid operationType
         mockMvc.perform(post(ApiConstants.TRANSACTIONS_BASE_URL)
+                        .with(httpBasic("admin", "password"))
                         .header(ApiConstants.IDEMPOTENCY_KEY_HEADER, "idem-1234")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -144,6 +150,7 @@ class PismoE2ETest {
     void e2e_multiple_transactions_update_balance_correctly() throws Exception {
         String accountJson =
                 mockMvc.perform(post(ApiConstants.ACCOUNTS_BASE_URL)
+                                .with(httpBasic("admin", "password"))
                                 .header(ApiConstants.IDEMPOTENCY_KEY_HEADER, "idem-123")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
@@ -162,6 +169,7 @@ class PismoE2ETest {
 
         // credit
         mockMvc.perform(post(ApiConstants.TRANSACTIONS_BASE_URL)
+                        .with(httpBasic("admin", "password"))
                         .header(ApiConstants.IDEMPOTENCY_KEY_HEADER, "idem-1234")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -175,6 +183,7 @@ class PismoE2ETest {
 
         // debit
         mockMvc.perform(post(ApiConstants.TRANSACTIONS_BASE_URL)
+                        .with(httpBasic("admin", "password"))
                         .header(ApiConstants.IDEMPOTENCY_KEY_HEADER, "idem-12345")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -186,7 +195,8 @@ class PismoE2ETest {
                             """.formatted(accountId)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get(ApiConstants.ACCOUNTS_BASE_URL + "/{id}", accountId))
+        mockMvc.perform(get(ApiConstants.ACCOUNTS_BASE_URL + "/{id}", accountId)
+                        .with(httpBasic("admin", "password")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.balance").value(150.00));
     }

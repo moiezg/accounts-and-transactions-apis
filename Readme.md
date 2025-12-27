@@ -12,6 +12,7 @@ This project is designed to reflect real-world financial system constraints and 
 - Create credit and debit transactions
 - Enforce non-negative account balances
 - Strong transactional guarantees (all-or-nothing updates)
+- **Basic Authentication** for API security
 - Concurrency-safe balance updates
 - Clean separation between API, domain, and persistence layers
 - Comprehensive test coverage (unit, integration, E2E)
@@ -44,6 +45,7 @@ This project is designed to reflect real-world financial system constraints and 
 - Java 17
 - Spring Boot 3.x
 - Spring Web
+- Spring Security
 - Spring Data JPA (Hibernate)
 - Jackson (JSON serialization/deserialization)
 - H2 (default in-memory database)
@@ -200,7 +202,17 @@ Notes:
 - **Versioning**: API endpoints are prefixed with `/v1` to support future non-breaking evolution.
 - **Observability**: Operations are logged using SLF4J with contextual information (Account ID, Transaction ID).
 - **Tracing**: Logs include the `Idempotency-Key` to correlate specific requests.
-- **Security**: PII is excluded from logs to ensure data privacy.
+- **Privacy**: PII is excluded from logs to ensure data privacy.
+
+---
+
+## 🔐 Security
+
+The API is secured using **HTTP Basic Authentication**.
+
+| Username | Password | Role |
+|----------|----------|------|
+| `admin`  | `password` | ADMIN |
 
 ---
 
@@ -239,10 +251,7 @@ mvn clean verify
 3. Single balance per account  
    Accounts maintain one balance field.
 
-4. No authentication or authorization  
-   Security is intentionally out of scope.
-
-5. Static operation types  
+4. Static operation types  
    `OperationType` values are predefined and not configurable.
 
 ---
